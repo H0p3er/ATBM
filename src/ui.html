@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES Encryption/Decryption with CryptoJS</title>
+    <script src="/utilities.js" type="module"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+</head>
+<body>
+    <div style=" display: flex; justify-content: space-around;">
+
+        <div style=" display: flex; flex-direction: column;">
+            <h2>Mã hóa</h2>
+
+            <div style=" display: flex; margin: 25px; justify-content: space-around;">
+                <label for="plainText">Bản rõ: </label>
+                <input type="text" id="plainText" placeholder="Nhập bản rõ">
+                <input type="file" id="importPlainTextFile" placeholder="Nhập file">
+            </div>
+
+            <button type="button" id="encryptBtn">Mã hóa</button>
+        
+            
+            
+            <div style=" display: flex; margin: 25px; justify-content: space-around;">
+                <label for="encryptedText">Bản mã:</label>
+                <input type="text" id="encryptedText" placeholder="Bản mã" value="">
+                <div>
+                    <button type="button" id="changeValue">Chuyển</button>
+                    <button type="button" id="saveEncryptBtn">Lưu</button>
+                </div>
+                
+            </div>
+        </div>
+    
+        <div style=" display: flex; flex-direction: column; align-items: space-around;">
+            <h2>Giải mã</h2>
+
+            <div style=" display: flex; margin: 25px; justify-content: space-around;">
+                <label for="cipherText">Bản mã:</label>
+                <input type="text" id="cipherText" placeholder="Nhập bản mã">
+                <input type="file" id="importEncryptFile" placeholder="Nhập file">
+            </div>
+            
+
+            <button type="button" id="decryptBtn">Giải mã</button>
+
+
+            <div style=" display: flex; margin: 25px; justify-content: space-around;">
+                <label for="decryptedText">Bản rõ:</label>
+                <input type="text" id="decryptedText" placeholder="Bản mã" value="">
+                <button type="button" id="saveDecryptBtn">Lưu</button>   
+            </div>
+           
+            
+        </div>
+    </div>
+
+
+</body>
+
+</html>
