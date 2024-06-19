@@ -100,15 +100,15 @@ function AESDecryptBlock(encryptedMessage, expandedKey, Nr = 10)
 	for (let i = 0; i < 16; i++) {
 		state[i] = encryptedMessage[i];
 	}
-	SubRoundKey(state, expandedKey.slice(Nr * 4, (Nr + 1) * 4)); // Final round
+	SubRoundKey(state, expandedKey.slice(Nr * 16, (Nr + 1) * 16)); // Final round
 
 	let numberOfRounds = 9;
 	
 	for (let round = Nr - 1; round > 0; round--) {
-		Round(state, expandedKey.slice(round * 4, (round + 1) * 4));
+		Round(state, expandedKey.slice(round * 16, (round + 1) * 16));
 	}
 	
-	FinalRound(state, expandedKey);
+	FinalRound(state, expandedKey.slice(0,16));
 
 	// Copy decrypted state to buffer
 	for (let i = 0; i < 16; i++) {
@@ -118,8 +118,7 @@ function AESDecryptBlock(encryptedMessage, expandedKey, Nr = 10)
 }
 
 export function AESDecrypt(encryptedMessage = [], key){
-  let expandedKey = KeyExpansion(key);
-	
+  	let expandedKey = KeyExpansion(key);
 	let messageLen = encryptedMessage.length;
 	let decryptedMessage = [];
 	for (let i = 0; i < messageLen; i += 16) {
@@ -127,6 +126,5 @@ export function AESDecrypt(encryptedMessage = [], key){
 		console.log("block: ", block);
 		decryptedMessage.push(...AESDecryptBlock(block, expandedKey));
 	}
-	decryptedMessage = unpadMessage(decryptedMessage);
-  return bytesToText(decryptedMessage);
+  	return bytesToText(decryptedMessage);
 }

@@ -96,18 +96,19 @@ function FinalRound(state, key) {
 function AESEncryptBlock(message, expandedKey) {
 
 	let state = []; // Stores the first 16 bytes of original message
-	for (let i = 0; i < 16; i++) {
-		state[i] = message[i];
+	for (let i = 0; i < 4; i++) {
+		for (let j = 0; j<4 ; j++){
+			state[i+4*j] = message[i*4+j];
+		}
 	}
 	let numberOfRounds = 9;
+	AddRoundKey(state, expandedKey.slice(0, 16)); // Initial round
 
-	AddRoundKey(state, expandedKey); // Initial round
-
-	for (let i = 0; i < numberOfRounds; i++) {
-		Round(state, expandedKey + (16 * (i+1)));
+	for (let i = 1; i < numberOfRounds; i++) {
+		Round(state, expandedKey.slice(16 * i, 16 * (i+1)));
 	}
 
-	FinalRound(state, expandedKey + 160);
+	FinalRound(state, expandedKey.slice(160,176));
 
     let encryptedMessage = [];
 	// Copy encrypted state to buffer
@@ -129,16 +130,16 @@ function AESEncryptBlock(message, expandedKey) {
  */
 export function AESEncrypt(message, key){
     let expandedKey = KeyExpansion(key);
+	console.log(expandedKey);
 		if(expandedKey && message) {
 			let encryptedMessage = [];
 			let paddedMessage = padMessage(message);
 	
 			for (let i = 0; i < paddedMessage.length; i += 16) {
-        var block = paddedMessage.slice(i, i + 16);
+				var block = paddedMessage.slice(i, i + 16);
 				console.log(block);
-        encryptedMessage.push(...AESEncryptBlock(block, expandedKey));
-    	}
-	
+				encryptedMessage.push(...AESEncryptBlock(block, expandedKey));
+			}
 			return encryptedMessage;
 		} else {
 			alert("message không hợp lệ");

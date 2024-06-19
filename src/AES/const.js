@@ -63,7 +63,7 @@ export let mul3 =
 ];
 
 // Used in KeyExpansion
-export let rcon = new Uint8Array( [
+export let rcon = [
 	0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
 	0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
 	0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a,
@@ -80,7 +80,7 @@ export let rcon = new Uint8Array( [
 	0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63,
 	0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd,
 	0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d
-] );
+] ;
 
 // Decryption: Inverse Rijndael S-box
 export let inv_s = [
@@ -186,22 +186,24 @@ export let mul14 =
 ];
 
 // Auxiliary function for KeyExpansion
-function KeyExpansionCore(inputKey, i) {
+function KeyExpansionCore(inputTmp, i) {
+	
 	// Rotate left by one byte: shift left 
-	let t = inputKey[0];
-	inputKey[0] = inputKey[1];
-	inputKey[1] = inputKey[2];
-	inputKey[2] = inputKey[3];
-	inputKey[3] = t;
+	let t = inputTmp[0];
+	inputTmp[0] = inputTmp[1];
+	inputTmp[1] = inputTmp[2];
+	inputTmp[2] = inputTmp[3];
+	inputTmp[3] = t;
 
 	// S-box 4 bytes 
-	inputKey[0] = s[inputKey[0]];
-	inputKey[1] = s[inputKey[1]];
-	inputKey[2] = s[inputKey[2]];
-	inputKey[3] = s[inputKey[3]];
+	inputTmp[0] = s[inputTmp[0]];
+	inputTmp[1] = s[inputTmp[1]];
+	inputTmp[2] = s[inputTmp[2]];
+	inputTmp[3] = s[inputTmp[3]];
 
 	// RCon
-	inputKey[0] ^= rcon[i];
+	inputTmp[0] ^= rcon[i];
+	
 }
 
 /* The main KeyExpansion function
@@ -300,7 +302,6 @@ export const copyArray = (sourceArray, targetArray, targetStart, sourceStart, so
 
 // Chuyển đổi văn bản thành byte
 export function textToBytes(text) {
-	console.log(text);
 	console.log(new TextEncoder().encode(text));
 	return new TextEncoder().encode(text);
 }
