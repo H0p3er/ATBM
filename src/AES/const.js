@@ -1,3 +1,5 @@
+export const key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+
 export let s =
 [
 	0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -207,18 +209,21 @@ function KeyExpansionCore(inputKey, i) {
  * Total of 11 128-bit keys generated, including the original
  * Keys are stored one after the other in expandedKeys
  */
-export function KeyExpansion(inputKey, expandedKeys) {
-    console.log(inputKey);
+export function KeyExpansion(inputKey) {
+	if(!inputKey) {
+		console.log("Key không hợp lệ");
+		return null;
+	}
+	var expandedKeys = [];
     
 	// The first 128 bits are the original key
 	for (let i = 0; i < 16; i++) {
 		expandedKeys[i] = inputKey[i];
 	}
-    console.log(expandedKeys);
 
 	let bytesGenerated = 16; // Bytes we've generated so far
 	let rconIteration = 1; // Keeps track of rcon value
-	let tmpCore = new Uint8Array(); // Temp storage for core
+	let tmpCore = []; // Temp storage for core
 
 	while (bytesGenerated < 176) {
 		/* Read 4 bytes for the core
@@ -240,4 +245,162 @@ export function KeyExpansion(inputKey, expandedKeys) {
 		}
 
 	}
+
+	return expandedKeys;
+}
+
+
+export const coerceArray = (arg, copy) => {
+
+	// ArrayBuffer view
+	if (arg.buffer && arg.name === 'Uint8Array') {
+
+			if (copy) {
+					if (arg.slice) {
+							arg = arg.slice();
+					} else {
+							arg = Array.prototype.slice.call(arg);
+					}
+			}
+
+			return arg;
+	}
+
+	// It's an array; check it is a valid representation of a byte
+	if (Array.isArray(arg)) {
+			if (!checkInts(arg)) {
+					throw new Error('Array contains invalid value: ' + arg);
+			}
+
+			return new Uint8Array(arg);
+	}
+
+	// Something else, but behaves like an array (maybe a Buffer? Arguments?)
+	if (checkInt(arg.length) && checkInts(arg)) {
+			return new Uint8Array(arg);
+	}
+
+	throw new Error('unsupported array-like object');
+}
+
+export const createArray = (length) => {
+	return new Uint8Array(length);
+}
+
+export const copyArray = (sourceArray, targetArray, targetStart, sourceStart, sourceEnd) => {
+	if (sourceStart != null || sourceEnd != null) {
+			if (sourceArray.slice) {
+					sourceArray = sourceArray.slice(sourceStart, sourceEnd);
+			} else {
+					sourceArray = Array.prototype.slice.call(sourceArray, sourceStart, sourceEnd);
+			}
+	}
+	targetArray.set(sourceArray, targetStart);
+}
+
+// Chuyển đổi văn bản thành byte
+export function textToBytes(text) {
+	console.log(text);
+	console.log(new TextEncoder().encode(text));
+	return new TextEncoder().encode(text);
+}
+
+// Chuyển đổi byte thành văn bản
+export function bytesToText(bytes) {
+	return new TextDecoder().decode(new Uint8Array(bytes));
+}
+
+export const convertUtf8 = (function() {
+	function toBytes(text) {
+			var result = [], i = 0;
+			text = encodeURI(text);
+			while (i < text.length) {
+					var c = text.charCodeAt(i++);
+
+					// if it is a % sign, encode the following 2 bytes as a hex value
+					if (c === 37) {
+							result.push(parseInt(text.substr(i, 2), 16))
+							i += 2;
+
+					// otherwise, just the actual byte
+					} else {
+							result.push(c)
+					}
+			}
+
+			return coerceArray(result);
+	};
+
+	function fromBytes (bytes) {
+			var result = [], i = 0;
+
+			while (i < bytes.length) {
+					var c = bytes[i];
+
+					if (c < 128) {
+							result.push(String.fromCharCode(c));
+							i++;
+					} else if (c > 191 && c < 224) {
+							result.push(String.fromCharCode(((c & 0x1f) << 6) | (bytes[i + 1] & 0x3f)));
+							i += 2;
+					} else {
+							result.push(String.fromCharCode(((c & 0x0f) << 12) | ((bytes[i + 1] & 0x3f) << 6) | (bytes[i + 2] & 0x3f)));
+							i += 3;
+					}
+			}
+
+			result.join('');
+	}
+
+	return {
+			toBytes: toBytes,
+			fromBytes: fromBytes,
+	}
+})();
+
+export const convertHex = (function() {
+	function toBytes(text) {
+			var result = [];
+			for (var i = 0; i < text.length; i += 2) {
+					result.push(parseInt(text.substr(i, 2), 16));
+			}
+
+			return result;
+	}
+
+	function fromBytes(bytes) {
+					var result = [];
+					for (var i = 0; i < bytes.length; i++) {
+							var v = bytes[i];
+							result.push(Hex[(v & 0xf0) >> 4] + Hex[v & 0x0f]);
+					}
+					return result.join('');
+	}
+
+	return {
+			toBytes: toBytes,
+			fromBytes: fromBytes,
+	}
+})();
+
+// Padding
+export function padMessage(message = []) {
+	const blockSize = 16;
+	const padding = blockSize - (message.length % blockSize);
+	var result = Array.from(message);
+	result.push(...new Array(padding).fill(32));
+	return new Uint8Array(result);
+}
+
+// Unpadding
+export function unpadMessage(paddedMessage) {
+	while (paddedMessage[paddedMessage.length - 1] === 32) {
+		paddedMessage.pop();
+	}
+	return paddedMessage;
+}
+
+export function convertToNumberArray(stringArr) {
+	
+	return new Uint8Array(stringArr.map(Number));
 }
