@@ -2,15 +2,17 @@ import { encryptData } from "./encrypt.js";
 import { decryptData } from "./decrypt.js";
 import { generateKey } from "./key.js"; 
 import { download } from "./file.js";
+import { key } from "./AES/const.js";
 
 let encryptedText = ""
 let plainText = "";
-let key = generateKey(16);;
+// let key = generateKey(16);
 
 document.getElementById("encryptBtn").addEventListener("click",()=>{
-    key = generateKey(16);
+    // key = generateKey(16);
     plainText = document.getElementById('plainText').value;
-    encryptedText = encryptData(plainText,key);
+    encryptedText = encryptData(plainText, key);
+    console.log(encryptedText);
     document.getElementById('encryptedText').value = encryptedText;
 })
 
