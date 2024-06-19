@@ -1,6 +1,6 @@
 import { inv_s, mul9, mul11, mul13, mul14, KeyExpansion, bytesToText, unpadMessage } from "./const.js";
 
-function SubRoundKey(state, roundKey) {
+function AddRoundKey(state, roundKey) {
 	for (let i = 0; i < 16; i++) {
 		state[i] ^= roundKey[i];
 	}
@@ -26,7 +26,7 @@ function InvShiftRows(state) {
 
 	for(var i = 1; i < 4; i++) {
 		for(var j = 0; j < 4; j++) {
-			state[i] = tmp[i + ((j - i + 4) % 4)];
+			state[i * 4 + j] = tmp[i * 4 + ((Math.abs(j - i)) % 4)];
 		}
 	}
 	
@@ -78,7 +78,7 @@ function InvSubBytes(state) {
 function Round(state, key) {
 	InvShiftRows(state);
 	InvSubBytes(state);
-	SubRoundKey(state, key);
+	AddRoundKey(state, key);
 	InverseMixColumns(state);
 }
 
@@ -86,7 +86,7 @@ function Round(state, key) {
 function FinalRound(state, key) {
 	InvShiftRows(state);
 	InvSubBytes(state);
-	SubRoundKey(state, key);
+	AddRoundKey(state, key);
 }
 
 /* The AES decryption function
@@ -94,13 +94,16 @@ function FinalRound(state, key) {
  */
 function AESDecryptBlock(encryptedMessage, expandedKey, Nr = 10)
 {
-  let decryptedMessage = []
+  	let decryptedMessage = []
 	let state = []; // Stores the first 16 bytes of encrypted message
 	
-	for (let i = 0; i < 16; i++) {
-		state[i] = encryptedMessage[i];
+	for (let i = 0; i < 4; i++) {
+		for (let j = 0; j<4 ; j++){
+			state[i+4*j] = encryptedMessage[i*4+j];
+		}
 	}
-	SubRoundKey(state, expandedKey.slice(Nr * 16, (Nr + 1) * 16)); // Final round
+
+	AddRoundKey(state, expandedKey.slice(Nr * 16, (Nr + 1) * 16)); // Final round
 
 	let numberOfRounds = 9;
 	
@@ -111,8 +114,10 @@ function AESDecryptBlock(encryptedMessage, expandedKey, Nr = 10)
 	FinalRound(state, expandedKey.slice(0,16));
 
 	// Copy decrypted state to buffer
-	for (let i = 0; i < 16; i++) {
-		decryptedMessage[i] = state[i];
+	for (let i = 0; i < 4; i++) {
+		for (let j = 0; j<4;j++){
+			decryptedMessage[i*4+j] = state[i+4*j];
+		}
 	}
   return decryptedMessage;
 }

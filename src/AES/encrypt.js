@@ -53,7 +53,7 @@ function ShiftRows(state) {
 	// tmp[14] = state[6];
 	// tmp[15] = state[11];
 
-	for (let i = 0; i < 4; i++) {
+	for (let i = 1; i < 4; i++) {
 		for( let j = 0; j < 4; j++) {
 			state[i * 4 + j] = tmp[i * 4 + ((i + j) % 4)];
 		}
@@ -101,6 +101,7 @@ function AESEncryptBlock(message, expandedKey) {
 			state[i+4*j] = message[i*4+j];
 		}
 	}
+
 	let numberOfRounds = 9;
 	AddRoundKey(state, expandedKey.slice(0, 16)); // Initial round
 
@@ -112,8 +113,10 @@ function AESEncryptBlock(message, expandedKey) {
 
     let encryptedMessage = [];
 	// Copy encrypted state to buffer
-	for (let i = 0; i < 16; i++) {
-		encryptedMessage[i] = state[i];
+	for (let i = 0; i < 4; i++) {
+		for (let j = 0; j<4;j++){
+			encryptedMessage[i*4+j] = state[i+4*j];
+		}	
 	}
   return encryptedMessage;
 }

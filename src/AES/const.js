@@ -185,24 +185,25 @@ export let mul14 =
 	0xd7,0xd9,0xcb,0xc5,0xef,0xe1,0xf3,0xfd,0xa7,0xa9,0xbb,0xb5,0x9f,0x91,0x83,0x8d
 ];
 
+function RotWord(word = []){
+	let rotWord = []
+	rotWord[0] = word[1];
+	rotWord[1] = word[2];
+	rotWord[2] = word[3];
+	rotWord[3] = word[0];
+
+	return rotWord
+}
+
+function SubWord(word = [], i){
+	return word.map(byte => s[byte]);;
+}
+
 // Auxiliary function for KeyExpansion
 function KeyExpansionCore(inputTmp, i) {
-	
-	// Rotate left by one byte: shift left 
-	let t = inputTmp[0];
-	inputTmp[0] = inputTmp[1];
-	inputTmp[1] = inputTmp[2];
-	inputTmp[2] = inputTmp[3];
-	inputTmp[3] = t;
-
-	// S-box 4 bytes 
-	inputTmp[0] = s[inputTmp[0]];
-	inputTmp[1] = s[inputTmp[1]];
-	inputTmp[2] = s[inputTmp[2]];
-	inputTmp[3] = s[inputTmp[3]];
-
-	// RCon
-	inputTmp[0] ^= rcon[i];
+	let tmp = []
+	tmp = SubWord(RotWord(inputTmp),i) ^ rcon[Math.floor(i/4)];
+	return tmp;
 	
 }
 
@@ -212,42 +213,31 @@ function KeyExpansionCore(inputTmp, i) {
  * Keys are stored one after the other in expandedKeys
  */
 export function KeyExpansion(inputKey) {
+	let expandedKeys = [];
+
+
 	if(!inputKey) {
 		console.log("Key không hợp lệ");
 		return null;
 	}
-	var expandedKeys = [];
-    
 	// The first 128 bits are the original key
-	for (let i = 0; i < 16; i++) {
-		expandedKeys[i] = inputKey[i];
+	for (let i = 0; i < 4; i++) {
+		for (let j = 0; j<4; j++){
+			expandedKeys[i + 4 * j] = inputKey[i*4+j];
+		}	
 	}
 
-	let bytesGenerated = 16; // Bytes we've generated so far
-	let rconIteration = 1; // Keeps track of rcon value
-	let tmpCore = []; // Temp storage for core
+	
+	for (let i = 4; i<44; i++){
+		for (let j = 0; j < 4 ; j++){
+			let word = expandedKeys.slice((i-1)*4, i*4);
+			if (i % 4 == 0){
+				word = KeyExpansionCore(word,j);
+			}
 
-	while (bytesGenerated < 176) {
-		/* Read 4 bytes for the core
-		* They are the previously generated 4 bytes
-		* Initially, these will be the final 4 bytes of the original key
-		*/
-		for (let i = 0; i < 4; i++) {
-			tmpCore[i] = expandedKeys[i + bytesGenerated - 4];
+			expandedKeys[i*4 + j] = expandedKeys[(i-1)*4 + j] ^ word[j];
 		}
-
-		// Perform the core once for each 16 byte key
-		if (bytesGenerated % 16 == 0) {
-			KeyExpansionCore(tmpCore, rconIteration++);
-		}
-
-		for (let a = 0; a < 4; a++) {
-			expandedKeys[bytesGenerated] = expandedKeys[bytesGenerated - 16] ^ tmpCore[a];
-			bytesGenerated++;
-		}
-
 	}
-
 	return expandedKeys;
 }
 
